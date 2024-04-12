@@ -1,2 +1,2 @@
-# TicTacToe-myCisc191Project-
-a simple game of tic tac toe
+# Checkers-MyCISC91Project-
+a simple game of checkers
