@@ -93,6 +93,10 @@ public class GameView extends JFrame
 	{
 		blackPiecesRemaining.setValue(model.blackPlayer.getCheckerPiecesRemaining());
 		redPiecesRemaining.setValue(model.redPlayer.getCheckerPiecesRemaining());
+		if(model.blackPlayerWins())
+		{
+			
+		}
 		
 		
 	}
