@@ -1,3 +1,5 @@
+import java.awt.Color;
+
 import javax.swing.JButton;
 
 public class CheckerPiece extends JButton
@@ -19,5 +21,10 @@ public class CheckerPiece extends JButton
 	public int getColumn()
 	{
 		return column;
+	}
+	
+	public Color getColor()
+	{
+		return color;
 	}
 }
