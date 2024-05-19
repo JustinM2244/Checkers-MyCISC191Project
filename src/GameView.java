@@ -1,11 +1,15 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.dnd.DropTarget;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -19,6 +23,8 @@ public class GameView extends JFrame
 	private JPanel board;
 	private JSlider blackPiecesRemaining;
 	private JSlider redPiecesRemaining;
+	private CheckerPiece checkerPiece;
+	private CheckerPiece storedPiece = null;
 	
 	public GameView(CheckerBoardModel checkerBoard)
 	{
@@ -28,11 +34,6 @@ public class GameView extends JFrame
 		
 		board = new JPanel();
 		board.setLayout(new GridLayout(model.Dimension, model.Dimension));
-		
-//		JPanel Scoreboard = new JPanel();
-//		JLabel Score = new JLabel("Black Player: " + model.blackPlayer.getWins() + " Red Player: "+ model.redPlayer.getWins());
-//		Scoreboard.add(Score);
-//		board.add(Scoreboard, BorderLayout.SOUTH);
 
 		JPanel rightSliders = new JPanel();
 		rightSliders.setLayout(new GridLayout(1,4));
@@ -65,30 +66,30 @@ public class GameView extends JFrame
 		{
 			for(int col = 0; col < model.Dimension; col++)
 			{
-				CheckerPiece checkerPiece = new CheckerPiece(row, col);
+				checkerPiece = new CheckerPiece(row, col);
+				
 
 				checkerPiece.setBorder((BorderFactory.createLineBorder(Color.black)));
 				checkerPiece.setBackground(Color.white);
 				checkerPiece.setEnabled(false);
+				checkerPiece.addActionListener((new CheckerPieceListener(model, this, checkerPiece)));
 				board.add(checkerPiece);
 				
 				if((row + col) % 2 == 0)
 				{
-					
+					checkerPiece.setEnabled(true);
 					checkerPiece.setBackground(Color.gray);
 					if(row < 3)
 					{
-						checkerPiece.addActionListener((new CheckerPieceListener(model, model.blackPlayer, this, checkerPiece)));
-						checkerPiece.setText("black");
-						checkerPiece.setEnabled(true);
-						//board.add(checkerPiece);
+						checkerPiece.setText("black" + checkerPiece.getTileNumber());
+						checkerPiece.setColor(Color.black);
+						ImageIcon blackPiece = new ImageIcon();
+						checkerPiece.setIcon(blackPiece);
 					}
 					if(row > 4)
 					{
-						checkerPiece.addActionListener((new CheckerPieceListener(model, model.redPlayer, this, checkerPiece)));
 						checkerPiece.setText("red");
-						checkerPiece.setEnabled(true);
-						//board.add(checkerPiece);
+						checkerPiece.setColor(Color.red);
 					}
 				}
 			}
@@ -97,7 +98,7 @@ public class GameView extends JFrame
 		this.add(board, BorderLayout.CENTER);
 		
 		JPanel Scoreboard = new JPanel();
-		JLabel Score = new JLabel("Black Player: " + model.blackPlayer.getWins() + " Red Player: "+ model.redPlayer.getWins(), JLabel.CENTER);
+		JLabel Score = new JLabel("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red), JLabel.CENTER);
 		Score.setFont(new Font("Bold", 20, 20));
 		Scoreboard.add(Score);
 		this.add(Scoreboard, BorderLayout.NORTH);
@@ -117,8 +118,20 @@ public class GameView extends JFrame
 	
 	public void updateGame()
 	{
-		blackPiecesRemaining.setValue(model.blackPlayer.getCheckerPiecesRemaining());
-		redPiecesRemaining.setValue(model.redPlayer.getCheckerPiecesRemaining());
+		for(int i = 0; i < board.getComponentCount(); i++)
+		{
+			Component change = board.getComponent(i);
+			System.out.println(change);
+			change.setName(change.getName());
+		}
+		
+		this.board.repaint();
+		
+		
+		blackPiecesRemaining.setValue(model.piecesRemaining(Color.black));
+		redPiecesRemaining.setValue(model.piecesRemaining(Color.red));
+		
+		
 		
 		if(model.blackPlayerWins())
 		{
@@ -129,7 +142,63 @@ public class GameView extends JFrame
 		{
 			JOptionPane.showMessageDialog(null, "Red Player Wins");
 		}
-		
 	}
+	
+	public void showAlert(String alert)
+	{
+		JOptionPane.showMessageDialog(null, alert);
+	}
+	
+	public void selectTile(CheckerPiece selectedPiece)
+	{
+		if(storedPiece == null)
+		{
+			if(model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null)
+			{
+				JOptionPane.showMessageDialog(null, "This Is Not A Piece");
+			}
+			else
+			{
+				storedPiece = selectedPiece;
+				board.getComponent(selectedPiece.getTileNumber()).setBackground(Color.CYAN);
+			}
+		}
+		else if(storedPiece == selectedPiece)
+		{
+			storedPiece = null;
+			board.getComponent(selectedPiece.getTileNumber()).setBackground(Color.gray);
+		}
+		if(storedPiece != null && storedPiece != selectedPiece)
+		{
+			if(model.canMove(storedPiece, selectedPiece))
+			{
+				updateGame();
+			}
+			
+			JOptionPane.showMessageDialog(null, 3);
+		//	exchangeTiles(storedPiece, selectedPiece);
+			board.getComponent(storedPiece.getTileNumber()).setBackground(Color.gray);
+			storedPiece = null;
+		}
+	}
+	
+//	public void exchangeTiles(CheckerPiece fromTile, CheckerPiece toTile)
+//	{
+//		CheckerPiece temp = fromTile;
+//		model.setColor(fromTile.getRow(), fromTile.getColumn(), toTile.getColor());
+//		model.setColor(toTile.getRow(), toTile.getColumn(), temp.getColor());
+//		
+//		Component fromComponent = board.getComponent(fromTile.getTileNumber());
+//		Component tempComponent = fromComponent;
+//		Component toComponent = board.getComponent(toTile.getTileNumber());
+//		
+//		fromComponent = toComponent;
+//		toComponent = tempComponent;
+//		
+//		updateGame();
+//		
+//	}
+	
+	
 }
 
