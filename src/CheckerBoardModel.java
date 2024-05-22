@@ -7,8 +7,8 @@ public class CheckerBoardModel
 	private Color[][] grid = new Color[Dimension][Dimension];
 	private int redWins = 0;
 	private int blackWins = 0;
-	private int blackPieces = 1;
-	private int redPieces = 1;
+	private int blackPieces = 12;
+	private int redPieces = 12;
 	protected ArrayList<CheckerPiece> primedPieces;
 	private Color playerTurn = Color.black;
 	
@@ -108,19 +108,22 @@ public class CheckerBoardModel
 		primedPieces.add(toTile);
 	}
 	
-	public void pieceEaten(int row, int column, Color colorEaten) 
+	public String pieceEaten(int row, int column, Color colorEaten) 
 	{
 		if(colorEaten == Color.black)
 		{
 			blackPieces--;
 			setColor(row,column, null);
+			return "Black Piece Was Eaten";
 		}
 		
 		if(colorEaten == Color.red)
 		{
 			redPieces--;
 			setColor(row,column, null);
+			return "Red Piece Was Eaten";
 		}
+		return null;
 	}
 
 

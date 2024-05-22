@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.dnd.DropTarget;
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,9 +42,10 @@ public class GameView extends JFrame
 	private ImageIcon blackPieceImg;
 	private ImageIcon redPieceImg;
 	private JLabel Score;
-	private JLabel events;
-	private File eventFile = new File("event");
+	private JTextArea events;
+	private File eventFile = new File("events.txt");
 	private Scanner eventReader;
+	private Boolean ifEmpty = false;
 	
 	public GameView(CheckerBoardModel checkerBoard)
 	{
@@ -129,10 +131,13 @@ public class GameView extends JFrame
 		eventsListed.setLayout(new GridLayout(3, 1));
 		JLabel eventsName = new JLabel("What is Happening???", JLabel.CENTER);
 		eventsName.setFont(new Font("Bold", 20, 20));
-		events = new JLabel("yth", JLabel.CENTER);
+		events = new JTextArea("");
+		events.setWrapStyleWord(true);
+		events.setEnabled(false);
 		events.setFont(new Font("Bold", 15, 15));
+		events.setDisabledTextColor(Color.black);
 		JScrollPane scroll = new JScrollPane(events);
-		scroll.setSize(new Dimension(400, 200));
+		scroll.setSize(new Dimension(400, 300));
 		eventsListed.add(eventsName);
 		eventsListed.add(scroll);
 		this.add(eventsListed, BorderLayout.WEST);	
@@ -166,9 +171,9 @@ public class GameView extends JFrame
 			eventReader = new Scanner (eventFile);
 			String content = "";
 			
-			while(eventReader.hasNext())
+			while(eventReader.hasNextLine())
 			{
-				content += eventReader.next();
+				content += eventReader.nextLine() + "\n";
 			}
 			
 			eventsHappened = content;
@@ -180,7 +185,6 @@ public class GameView extends JFrame
 		}
 		finally
 		{
-			//closes the scanner if open
 			if (eventReader != null)
 			{
 				eventReader.close();
@@ -193,8 +197,6 @@ public class GameView extends JFrame
 		blackPiecesRemaining.setValue(model.piecesRemaining(Color.black));
 		redPiecesRemaining.setValue(model.piecesRemaining(Color.red));
 		events.setText(eventsHappened);
-	
-		
 		
 		for(int row = 0; row < model.Dimension ; row++)
 		{
@@ -243,6 +245,7 @@ public class GameView extends JFrame
 		if(model.blackPlayerWins())
 		{
 			JOptionPane.showMessageDialog(null, "Black Player Wins");
+			addToEvents("Black Player Wins");
 			Score.setText("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red));
 			model.endTurn();
 			model.resetGame();
@@ -294,22 +297,31 @@ public class GameView extends JFrame
 		{
 			if(model.isPiecePrimed(storedPiece)) 
 			{
-				System.out.println(model.isPiecePrimed(storedPiece));
+				Color primedColor = model.getColor(storedPiece.getRow(), storedPiece.getColumn());
+				Color oppositeColor = null;
+				if(primedColor == Color.black)
+				{
+					oppositeColor = Color.red;
+				}
+				if(primedColor == Color.red)
+				{
+					oppositeColor = Color.black;
+				}
 				if( storedPiece.getRow() - 2 == selectedPiece.getRow())
 				{
 					if( storedPiece.getColumn() - 2 == selectedPiece.getColumn() )
 					{
-						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) == oppositeColor)
 						{
-							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()-1, Color.black);
+							addToEvents(model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, oppositeColor));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
 					else if(storedPiece.getColumn() + 2 == selectedPiece.getColumn())
 					{
-						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) == model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
 						{
-							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()+1, Color.black);
+							addToEvents(model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, oppositeColor));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
@@ -319,17 +331,17 @@ public class GameView extends JFrame
 				{
 					if( storedPiece.getColumn() - 2 == selectedPiece.getColumn() )
 					{
-						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()+1, storedPiece.getColumn()-1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
 						{
-							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()-1, Color.black);
+							addToEvents(model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, oppositeColor));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
 					else if(storedPiece.getColumn() + 2 == selectedPiece.getColumn())
 					{
-						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) == model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()+1, storedPiece.getColumn()+1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
 						{
-							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, Color.black);
+							addToEvents(model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, oppositeColor));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
@@ -369,7 +381,7 @@ public class GameView extends JFrame
 					{
 						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) == Color.black)
 						{
-							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()-1, Color.black);
+							addToEvents(model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()-1, Color.black));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
@@ -377,7 +389,7 @@ public class GameView extends JFrame
 					{
 						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) == Color.black)
 						{
-							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()+1, Color.black);
+							addToEvents(model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()+1, Color.black));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
@@ -404,7 +416,7 @@ public class GameView extends JFrame
 					{
 						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()+1, storedPiece.getColumn()-1) == Color.red)
 						{
-							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()-1, Color.red);
+							addToEvents(model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()-1, Color.red));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
@@ -412,7 +424,7 @@ public class GameView extends JFrame
 					{
 						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()+1, storedPiece.getColumn()+1) == Color.red)
 						{
-							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, Color.red);
+							addToEvents(model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, Color.red));
 							exchangeTiles(storedPiece, selectedPiece);
 						}
 					}
@@ -441,13 +453,6 @@ public class GameView extends JFrame
 		model.setColor(fromTile.getRow(), fromTile.getColumn(), model.getColor(toTile.getRow(), toTile.getColumn()));
 		model.setColor(toTile.getRow(), toTile.getColumn(), temp);
 		
-		if(model.primedPieces != null) {
-			
-		System.out.println(model.primedPieces.size());
-		System.out.println(model.primedPieces);
-		
-		}
-		
 		if(model.getColor(toTile.getRow(), toTile.getColumn()) == Color.black && toTile.getRow() == 7 || 
 				model.getColor(toTile.getRow(), toTile.getColumn()) == Color.red && toTile.getRow() == 0)
 		{
@@ -458,6 +463,19 @@ public class GameView extends JFrame
 			model.exchangePrimedPlaces(fromTile, toTile);
 		}
 		
+		if(model.getColor(toTile.getRow(), toTile.getColumn()) == Color.black)
+		{
+			addToEvents("Black Piece Moved From (" + (fromTile.getRow()+1) + ", " + 
+					(fromTile.getColumn()+1)+ ") To (" + (toTile.getRow()+1) + ", " + (toTile.getColumn()+1) + ")");
+			addToEvents("Red Player's Turn");
+		}
+		
+		if(model.getColor(toTile.getRow(), toTile.getColumn()) == Color.red)
+		{
+			addToEvents("Red Piece Moved From (" + (fromTile.getRow()+1) + ", " + 
+					(fromTile.getColumn()+1) + ") To (" + (toTile.getRow()+1) + ", " + (toTile.getColumn()+1) + ")");
+			addToEvents("Black Player's Turn");
+		}
 		model.endTurn();
 		updateGame();
 	}
@@ -466,11 +484,19 @@ public class GameView extends JFrame
 	{
 		try
 		{
-			PrintWriter eventWriter = new PrintWriter(new FileWriter( eventFile, true ) );
-			
-			eventWriter.println(event);
-		
-			eventWriter.close();
+			if(ifEmpty == false) 
+			{
+				PrintWriter eventWriter = new PrintWriter(new FileWriter( eventFile, false ) );
+				eventWriter.println(event);
+				eventWriter.close();
+				ifEmpty = true;	
+			}
+			else 
+			{
+				PrintWriter eventWriter = new PrintWriter(new FileWriter( eventFile, true ) );
+				eventWriter.println(event);
+				eventWriter.close();
+			}
 		}
 		
 		catch (Exception e)
