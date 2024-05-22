@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.dnd.DropTarget;
 
 import javax.swing.BorderFactory;
@@ -17,6 +18,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
 
+import org.junit.Test;
+
 public class GameView extends JFrame
 {
 	private CheckerBoardModel model;
@@ -24,13 +27,17 @@ public class GameView extends JFrame
 	private JSlider blackPiecesRemaining;
 	private JSlider redPiecesRemaining;
 	private CheckerPiece checkerPiece;
-	private CheckerPiece storedPiece = null;
+	protected CheckerPiece storedPiece = null;
+	private JLabel playersTurn;
+	private ImageIcon blackPieceImg;
+	private ImageIcon redPieceImg;
+	private JLabel Score;
 	
 	public GameView(CheckerBoardModel checkerBoard)
 	{
 		this.model = checkerBoard;
 		this.setTitle("Simply Checkers");
-		this.setPreferredSize(new Dimension(1000,500));
+		this.setPreferredSize(new Dimension(12500,750));
 		
 		board = new JPanel();
 		board.setLayout(new GridLayout(model.Dimension, model.Dimension));
@@ -70,7 +77,7 @@ public class GameView extends JFrame
 				
 
 				checkerPiece.setBorder((BorderFactory.createLineBorder(Color.black)));
-				checkerPiece.setBackground(Color.white);
+				checkerPiece.setBackground(Color.gray);
 				checkerPiece.setEnabled(false);
 				checkerPiece.addActionListener((new CheckerPieceListener(model, this, checkerPiece)));
 				board.add(checkerPiece);
@@ -78,18 +85,20 @@ public class GameView extends JFrame
 				if((row + col) % 2 == 0)
 				{
 					checkerPiece.setEnabled(true);
-					checkerPiece.setBackground(Color.gray);
+					checkerPiece.setBackground(Color.white);
 					if(row < 3)
 					{
-						checkerPiece.setText("black" + checkerPiece.getTileNumber());
-						checkerPiece.setColor(Color.black);
-						ImageIcon blackPiece = new ImageIcon();
-						checkerPiece.setIcon(blackPiece);
+						blackPieceImg = new ImageIcon(this.getClass().getResource("BlackPiece.png"));
+						blackPieceImg = new ImageIcon(blackPieceImg.getImage().getScaledInstance(60, 100, Image.SCALE_AREA_AVERAGING));
+						checkerPiece.setIcon(blackPieceImg);
+						checkerPiece.setText("Black");
 					}
 					if(row > 4)
 					{
-						checkerPiece.setText("red");
-						checkerPiece.setColor(Color.red);
+						redPieceImg = new ImageIcon(this.getClass().getResource("RedPiece.png"));
+						redPieceImg = new ImageIcon(redPieceImg.getImage().getScaledInstance(60, 100, Image.SCALE_AREA_AVERAGING));
+						checkerPiece.setIcon(redPieceImg);
+						checkerPiece.setText("Red");
 					}
 				}
 			}
@@ -98,10 +107,17 @@ public class GameView extends JFrame
 		this.add(board, BorderLayout.CENTER);
 		
 		JPanel Scoreboard = new JPanel();
-		JLabel Score = new JLabel("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red), JLabel.CENTER);
+		Score = new JLabel("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red), JLabel.CENTER);
 		Score.setFont(new Font("Bold", 20, 20));
 		Scoreboard.add(Score);
 		this.add(Scoreboard, BorderLayout.NORTH);
+		
+		JPanel turnPanel = new JPanel();
+		playersTurn = new JLabel("Black Players's turn");
+		turnPanel.setFont(new Font("Bold", 20, 20));
+		turnPanel.add(playersTurn);
+		this.add(turnPanel, BorderLayout.SOUTH);
+		
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
@@ -114,91 +130,288 @@ public class GameView extends JFrame
 	{
 		new GameView(new CheckerBoardModel());
 	}
-	
-	
+		
 	public void updateGame()
-	{
-		for(int i = 0; i < board.getComponentCount(); i++)
+	{			
+		if(model.getPlayerTurn() == Color.black)
 		{
-			Component change = board.getComponent(i);
-			System.out.println(change);
-			change.setName(change.getName());
+			playersTurn.setText("Black Player's Turn");
 		}
-		
-		this.board.repaint();
-		
+		if(model.getPlayerTurn() == Color.red)
+		{
+			playersTurn.setText("Red Player's Turn");
+		}
 		
 		blackPiecesRemaining.setValue(model.piecesRemaining(Color.black));
 		redPiecesRemaining.setValue(model.piecesRemaining(Color.red));
 		
+	
+		
+		
+		for(int row = 0; row < model.Dimension ; row++)
+		{
+			for(int col = 0; col < model.Dimension; col++)
+			{
+				if((row + col) % 2 == 0) {
+									
+					
+					int placement = (row * 8) + col;
+					CheckerPiece updatingTile = (CheckerPiece) board.getComponent(placement);;
+					board.getComponent(placement).setBackground(Color.white);
+					if(model.getColor(row, col) == Color.black)
+					{
+						updatingTile.setIcon(blackPieceImg);
+						if(model.isPiecePrimed(updatingTile))
+						{
+							updatingTile.setText("Prime Black");
+						}
+						else
+						{
+							updatingTile.setText("Black");
+						}
+					}
+					else if(model.getColor(row, col) == Color.red)
+					{
+						updatingTile.setIcon(redPieceImg);
+						if(model.isPiecePrimed(updatingTile))
+						{
+							updatingTile.setText("Prime Red");
+						}
+						else
+						{
+							updatingTile.setText("Red");
+						}
+					}
+					else if(model.getColor(row, col) == null)
+					{
+						updatingTile.setText("");
+						updatingTile.setIcon(null);
+					}
+				}
+			}
+		}
 		
 		
 		if(model.blackPlayerWins())
 		{
 			JOptionPane.showMessageDialog(null, "Black Player Wins");
+			Score.setText("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red));
+			model.endTurn();
+			model.resetGame();
+			updateGame();
+			storedPiece = null;
 		}
 		
 		if(model.redPlayerWins())
 		{
 			JOptionPane.showMessageDialog(null, "Red Player Wins");
+			Score.setText("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red));
+			model.endTurn();
+			model.resetGame();
+			updateGame();
 		}
+		storedPiece = null;
 	}
-	
+
 	public void showAlert(String alert)
 	{
+		this.storedPiece = null;
 		JOptionPane.showMessageDialog(null, alert);
 	}
 	
-	public void selectTile(CheckerPiece selectedPiece)
+	public void selectTile(CheckerPiece selectedPiece) 
 	{
 		if(storedPiece == null)
 		{
 			if(model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null)
 			{
-				JOptionPane.showMessageDialog(null, "This Is Not A Piece");
+				showAlert("There is no piece here");
 			}
 			else
 			{
 				storedPiece = selectedPiece;
-				board.getComponent(selectedPiece.getTileNumber()).setBackground(Color.CYAN);
-			}
+				board.getComponent(storedPiece.getTileNumber()).setBackground(Color.cyan);
+			} 
 		}
+		
 		else if(storedPiece == selectedPiece)
 		{
+			board.getComponent(selectedPiece.getTileNumber()).setBackground(Color.white);
+			board.getComponent(storedPiece.getTileNumber()).setBackground(Color.white);
 			storedPiece = null;
-			board.getComponent(selectedPiece.getTileNumber()).setBackground(Color.gray);
 		}
-		if(storedPiece != null && storedPiece != selectedPiece)
+		
+		else if(storedPiece != null && storedPiece != selectedPiece)
 		{
-			if(model.canMove(storedPiece, selectedPiece))
+			if(model.isPiecePrimed(storedPiece)) 
 			{
-				updateGame();
-			}
+				System.out.println(model.isPiecePrimed(storedPiece));
+				if( storedPiece.getRow() - 2 == selectedPiece.getRow())
+				{
+					if( storedPiece.getColumn() - 2 == selectedPiece.getColumn() )
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						{
+							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()-1, Color.black);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+					else if(storedPiece.getColumn() + 2 == selectedPiece.getColumn())
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) == model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						{
+							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()+1, Color.black);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}
+				
+				else if( storedPiece.getRow() + 2 == selectedPiece.getRow())
+				{
+					if( storedPiece.getColumn() - 2 == selectedPiece.getColumn() )
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) != model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						{
+							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()-1, Color.black);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+					else if(storedPiece.getColumn() + 2 == selectedPiece.getColumn())
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) == model.getColor(storedPiece.getRow(), storedPiece.getColumn()))
+						{
+							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, Color.black);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}
+					
+				else if(storedPiece.getRow() - 1 == selectedPiece.getRow())
+				{
+					if(storedPiece.getColumn()-1 == selectedPiece.getColumn()
+						||	storedPiece.getColumn() + 1 == selectedPiece.getColumn())
+					{
+						if(model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null)
+						{
+							exchangeTiles(storedPiece, selectedPiece);
+
+						}
+					}
+				}	
+					
+				else if(storedPiece.getRow() + 1 == selectedPiece.getRow())
+				{
+					if(storedPiece.getColumn() + 1 == selectedPiece.getColumn()
+						||	storedPiece.getColumn()-1 == selectedPiece.getColumn())
+					{
+						if(model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null)
+						{
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}	
+			}	
 			
-			JOptionPane.showMessageDialog(null, 3);
-		//	exchangeTiles(storedPiece, selectedPiece);
-			board.getComponent(storedPiece.getTileNumber()).setBackground(Color.gray);
-			storedPiece = null;
+			else if( model.getColor(storedPiece.getRow(), storedPiece.getColumn()) == Color.red)
+			{
+				if( storedPiece.getRow() - 2 == selectedPiece.getRow() )
+				{
+					if( storedPiece.getColumn() - 2 == selectedPiece.getColumn() )
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()-1) == Color.black)
+						{
+							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()-1, Color.black);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+					else if(storedPiece.getColumn() + 2 == selectedPiece.getColumn())
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()-1, storedPiece.getColumn()+1) == Color.black)
+						{
+							model.pieceEaten(storedPiece.getRow()-1, storedPiece.getColumn()+1, Color.black);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}
+				
+				else if(storedPiece.getRow() - 1 == selectedPiece.getRow())
+				{
+					if(storedPiece.getColumn()-1 == selectedPiece.getColumn()
+						||	storedPiece.getColumn() + 1 == selectedPiece.getColumn())
+					{
+						if(model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null)
+						{
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}
+			}		
+			
+			else if(model.getColor(storedPiece.getRow(), storedPiece.getColumn()) == Color.black)
+			{
+				if( storedPiece.getRow() + 2 == selectedPiece.getRow() )
+				{
+					if( storedPiece.getColumn() - 2 == selectedPiece.getColumn() )
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()+1, storedPiece.getColumn()-1) == Color.red)
+						{
+							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()-1, Color.red);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+					else if(storedPiece.getColumn() + 2 == selectedPiece.getColumn())
+					{
+						if( model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null && model.getColor(storedPiece.getRow()+1, storedPiece.getColumn()+1) == Color.red)
+						{
+							model.pieceEaten(storedPiece.getRow()+1, storedPiece.getColumn()+1, Color.red);
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}	
+				
+				else if(storedPiece.getRow() + 1 == selectedPiece.getRow())
+				{
+					if(storedPiece.getColumn() + 1 == selectedPiece.getColumn()
+						||	storedPiece.getColumn()-1 == selectedPiece.getColumn())
+					{
+						if(model.getColor(selectedPiece.getRow(), selectedPiece.getColumn()) == null)
+						{
+							exchangeTiles(storedPiece, selectedPiece);
+						}
+					}
+				}
+			}
+		
 		}
 	}
 	
-//	public void exchangeTiles(CheckerPiece fromTile, CheckerPiece toTile)
-//	{
-//		CheckerPiece temp = fromTile;
-//		model.setColor(fromTile.getRow(), fromTile.getColumn(), toTile.getColor());
-//		model.setColor(toTile.getRow(), toTile.getColumn(), temp.getColor());
-//		
-//		Component fromComponent = board.getComponent(fromTile.getTileNumber());
-//		Component tempComponent = fromComponent;
-//		Component toComponent = board.getComponent(toTile.getTileNumber());
-//		
-//		fromComponent = toComponent;
-//		toComponent = tempComponent;
-//		
-//		updateGame();
-//		
-//	}
 	
-	
-}
+	public void exchangeTiles(CheckerPiece fromTile, CheckerPiece toTile)
+	{
+		Color temp = model.getColor(fromTile.getRow(), fromTile.getColumn());
 
+		model.setColor(fromTile.getRow(), fromTile.getColumn(), model.getColor(toTile.getRow(), toTile.getColumn()));
+		model.setColor(toTile.getRow(), toTile.getColumn(), temp);
+		
+		if(model.primedPieces != null) {
+			
+		System.out.println(model.primedPieces.size());
+		System.out.println(model.primedPieces);
+		
+		}
+		
+		if(model.getColor(toTile.getRow(), toTile.getColumn()) == Color.black && toTile.getRow() == 7 || 
+				model.getColor(toTile.getRow(), toTile.getColumn()) == Color.red && toTile.getRow() == 0)
+		{
+			model.piecePrimed(toTile);
+		}
+		else if(model.isPiecePrimed(fromTile))
+		{
+			model.exchangePrimedPlaces(fromTile, toTile);
+		}
+		System.out.println(model.primedPieces);
+		model.endTurn();
+		updateGame();
+	}
+		
+}

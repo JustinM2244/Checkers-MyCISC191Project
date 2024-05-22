@@ -4,6 +4,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.event.ChangeListener;
 
 public class CheckerPieceListener implements ActionListener
@@ -22,69 +23,62 @@ public class CheckerPieceListener implements ActionListener
 	
 	@Override
 	public void actionPerformed(ActionEvent e)
-	{				
-		System.out.println(model.getColor(checkerPiece.getRow(), checkerPiece.getColumn()));
-		
-		
+	{		
 		if(model.getColor(checkerPiece.getRow(), checkerPiece.getColumn()) == null)
 		{
 			view.selectTile(checkerPiece);
-		}
+		}	
 		
-		
-		
-		
-		
-		
-		if(model.getColor(checkerPiece.getRow(), checkerPiece.getColumn()) == Color.black)
+		if(model.getPlayerTurn() == Color.black) 
 		{
-			//checks if the Piece can move
-			try 
+			if(model.getColor(checkerPiece.getRow(), checkerPiece.getColumn()) == Color.black)
 			{
-				if( model.getColor(checkerPiece.getRow() + 1, checkerPiece.getColumn() + 1) == Color.black 
+				try 
+				{	
+					if(model.getColor(checkerPiece.getRow() + 1, checkerPiece.getColumn() + 1) == Color.black 
 						&& model.getColor(checkerPiece.getRow() + 1, checkerPiece.getColumn() - 1) == Color.black)
 					{
 						view.showAlert("This Piece Cant Move");
 					}
-				else
+					else
+					{
+						view.selectTile(checkerPiece);
+					}	
+				}	
+				
+				catch(ArrayIndexOutOfBoundsException a)
 				{
 					view.selectTile(checkerPiece);
-				}
+				}		
 			}
-			
-			catch(ArrayIndexOutOfBoundsException a)
-			{
-				view.showAlert(("This Piece Cant Move"));
-			}		
+		
 		}
 		
 		
-		
-		
-		
-		if(model.getColor(checkerPiece.getRow(), checkerPiece.getColumn()) == Color.red)
-		{
-			//checks if the Piece can move
-			try 
+		if(model.getPlayerTurn() == Color.red) 
+		{	
+			if(model.getColor(checkerPiece.getRow(), checkerPiece.getColumn()) == Color.red)
 			{
-				if( model.getColor(checkerPiece.getRow() - 1, checkerPiece.getColumn() - 1) == Color.red 
-						&& model.getColor(checkerPiece.getRow() - 1, checkerPiece.getColumn() + 1) == Color.red)
-				{
-						view.showAlert("This Piece Cant Move");
+				try 
+				{						
+					if( model.getColor(checkerPiece.getRow() - 1, checkerPiece.getColumn() - 1) == Color.red 
+							&& model.getColor(checkerPiece.getRow() - 1, checkerPiece.getColumn() + 1) == Color.red)
+					{
+							view.showAlert("This Piece Cant Move");
+					}
+					else
+					{
+						view.selectTile(checkerPiece);
+					}
 				}
-				else
-				{
 				
-				}
+				catch(ArrayIndexOutOfBoundsException a)
+				{
+					view.selectTile(checkerPiece);
+				}	
 			}
-			
-			catch(ArrayIndexOutOfBoundsException a)
-			{
-				view.showAlert(("This Piece Cant Move"));
-			}	
 		}
 	}
-	
-	
+
 	
 }

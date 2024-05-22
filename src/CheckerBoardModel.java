@@ -1,6 +1,5 @@
 import java.awt.Color;
-
-import javax.swing.Icon;
+import java.util.ArrayList;
 
 public class CheckerBoardModel 
 {
@@ -8,8 +7,10 @@ public class CheckerBoardModel
 	private Color[][] grid = new Color[Dimension][Dimension];
 	private int redWins = 0;
 	private int blackWins = 0;
-	private int blackPieces = 12;
-	private int redPieces = 12;
+	private int blackPieces = 1;
+	private int redPieces = 1;
+	protected ArrayList<CheckerPiece> primedPieces;
+	private Color playerTurn = Color.black;
 	
 	public CheckerBoardModel()
 	{
@@ -36,12 +37,22 @@ public class CheckerBoardModel
 	
 	public boolean blackPlayerWins()
 	{
-		return redPieces == 0;
+		if(redPieces == 0)
+		{
+			blackWins++;
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean redPlayerWins()
 	{
-		return blackPieces == 0;
+		if(blackPieces == 0)
+		{
+			redWins ++;
+			return true;
+		}
+		return false;
 	}
 	
 	public Color getColor(int row, int col)
@@ -62,6 +73,57 @@ public class CheckerBoardModel
 		return 0;
 	}
 	
+	public Color getPlayerTurn()
+	{
+		return playerTurn;
+	}
+	
+	public void setColor(int row, int col, Color color)
+	{
+		grid[row][col] = color;
+	}
+	
+	public void piecePrimed(CheckerPiece piece)
+	{
+		if(primedPieces == null) 
+		{
+			primedPieces = new ArrayList<>();
+		}
+		primedPieces.add(piece);
+	}
+
+	
+	public Boolean isPiecePrimed(CheckerPiece piece)
+	{
+		if(primedPieces == null)
+		{
+			return false;
+		}
+		return primedPieces.contains(piece);
+	}
+	
+	public void exchangePrimedPlaces(CheckerPiece fromTile, CheckerPiece toTile)
+	{
+		primedPieces.remove(fromTile);
+		primedPieces.add(toTile);
+	}
+	
+	public void pieceEaten(int row, int column, Color colorEaten) 
+	{
+		if(colorEaten == Color.black)
+		{
+			blackPieces--;
+			setColor(row,column, null);
+		}
+		
+		if(colorEaten == Color.red)
+		{
+			redPieces--;
+			setColor(row,column, null);
+		}
+	}
+
+
 	public int piecesRemaining(Color playerColor)
 	{
 		if(playerColor == Color.black)
@@ -76,89 +138,47 @@ public class CheckerBoardModel
 		return 0;
 	}
 	
-	public void setColor(int row, int col, Color color)
+	public void endTurn()
+
 	{
-		grid[row][col] = color;
+		if(playerTurn == Color.black)
+		{
+			playerTurn = Color.red;
+		}
+		else if(playerTurn == Color.red)
+		{
+			playerTurn = Color.black;
+		}
 	}
 	
-	public boolean canMove(CheckerPiece fromPiece, CheckerPiece toTile)
+	public void resetGame()
 	{
-		if(fromPiece.getColor() == Color.red)
+		for(int row = 0; row < Dimension ; row++)
 		{
-			if(fromPiece.getRow() - 1 == toTile.getRow())
+			for(int col = 0; col < Dimension; col++)
 			{
-				if(fromPiece.getColumn()-1 == toTile.getColumn())
+				setColor(row, col, null);
+				
+				if((row + col) % 2 == 0)
 				{
-					if(toTile.getColor() == null)
+					if(row < 3)
 					{
-						return true;
+						setColor(row, col, Color.black);
 					}
-					if(toTile.getColor() == Color.black)
+					if(row > 4)
 					{
-						if(grid[fromPiece.getRow()-2][fromPiece.getColumn()-2] == null)
-						{
-							return true;
-						}
+						setColor(row, col, Color.red);
 					}
-				}
-				else if(fromPiece.getColumn()+1 == toTile.getColumn())
-				{
-					if(toTile.getColor() == null)
-					{
-						return true;
-					}
-					if(toTile.getColor() == Color.black)
-					{
-						if(grid[fromPiece.getRow()+2][fromPiece.getColumn()+2] == null)
-						{
-							return true;
-						}
-					}
-				}
-
-
-			}
-		
-		}
-		else
-		{
-			if(fromPiece.getColor() == Color.black)
-			{
-				if(fromPiece.getRow() + 1 == toTile.getRow())
-				{
-					if(fromPiece.getColumn()+1 == toTile.getColumn())
-					{
-						if(toTile.getColor() == null)
-						{
-							return true;
-						}
-						if(toTile.getColor() == Color.red)
-						{
-							if(grid[fromPiece.getRow()+2][fromPiece.getColumn()+2] == null)
-							{
-								return true;
-							}
-						}
-					}
-					else if(fromPiece.getColumn()-1 == toTile.getColumn())
-					{
-						if(toTile.getColor() == null)
-						{
-							return true;
-						}
-						if(toTile.getColor() == Color.red)
-						{
-							if(grid[fromPiece.getRow()-2][fromPiece.getColumn()-2] == null)
-							{
-								return true;
-							}
-						}
-					}
-
-
 				}
 			}
 		}
-		return (Boolean) null;
+		blackPieces = 12;
+		redPieces = 12;
+		if(primedPieces != null)
+		{
+			primedPieces.clear();
+		}
 	}
+	
+	
 }
