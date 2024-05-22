@@ -6,6 +6,14 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.dnd.DropTarget;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -15,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
 
@@ -32,6 +41,9 @@ public class GameView extends JFrame
 	private ImageIcon blackPieceImg;
 	private ImageIcon redPieceImg;
 	private JLabel Score;
+	private JLabel events;
+	private File eventFile = new File("event");
+	private Scanner eventReader;
 	
 	public GameView(CheckerBoardModel checkerBoard)
 	{
@@ -66,16 +78,11 @@ public class GameView extends JFrame
 		rightSliders.add(redPlayer);
 		this.add(rightSliders, BorderLayout.EAST);
 		
-		
-		
-		
 		for(int row = 0; row < model.Dimension ; row++)
 		{
 			for(int col = 0; col < model.Dimension; col++)
 			{
 				checkerPiece = new CheckerPiece(row, col);
-				
-
 				checkerPiece.setBorder((BorderFactory.createLineBorder(Color.black)));
 				checkerPiece.setBackground(Color.gray);
 				checkerPiece.setEnabled(false);
@@ -103,7 +110,6 @@ public class GameView extends JFrame
 				}
 			}
 		}
-		
 		this.add(board, BorderLayout.CENTER);
 		
 		JPanel Scoreboard = new JPanel();
@@ -119,6 +125,18 @@ public class GameView extends JFrame
 		this.add(turnPanel, BorderLayout.SOUTH);
 		
 		
+		JPanel eventsListed = new JPanel();
+		eventsListed.setLayout(new GridLayout(3, 1));
+		JLabel eventsName = new JLabel("What is Happening???", JLabel.CENTER);
+		eventsName.setFont(new Font("Bold", 20, 20));
+		events = new JLabel("yth", JLabel.CENTER);
+		events.setFont(new Font("Bold", 15, 15));
+		JScrollPane scroll = new JScrollPane(events);
+		scroll.setSize(new Dimension(400, 200));
+		eventsListed.add(eventsName);
+		eventsListed.add(scroll);
+		this.add(eventsListed, BorderLayout.WEST);	
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
 		setVisible(true);
@@ -132,7 +150,8 @@ public class GameView extends JFrame
 	}
 		
 	public void updateGame()
-	{			
+	{		
+		String eventsHappened = "";
 		if(model.getPlayerTurn() == Color.black)
 		{
 			playersTurn.setText("Black Player's Turn");
@@ -142,9 +161,38 @@ public class GameView extends JFrame
 			playersTurn.setText("Red Player's Turn");
 		}
 		
+		try
+		{		
+			eventReader = new Scanner (eventFile);
+			String content = "";
+			
+			while(eventReader.hasNext())
+			{
+				content += eventReader.next();
+			}
+			
+			eventsHappened = content;
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+			System.out.print("File Does Not Exist");
+		}
+		finally
+		{
+			//closes the scanner if open
+			if (eventReader != null)
+			{
+				eventReader.close();
+			}
+		}
+		
+		
+		
+		
 		blackPiecesRemaining.setValue(model.piecesRemaining(Color.black));
 		redPiecesRemaining.setValue(model.piecesRemaining(Color.red));
-		
+		events.setText(eventsHappened);
 	
 		
 		
@@ -205,6 +253,7 @@ public class GameView extends JFrame
 		if(model.redPlayerWins())
 		{
 			JOptionPane.showMessageDialog(null, "Red Player Wins");
+			addToEvents("Red Player Wins");
 			Score.setText("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red));
 			model.endTurn();
 			model.resetGame();
@@ -385,7 +434,6 @@ public class GameView extends JFrame
 		}
 	}
 	
-	
 	public void exchangeTiles(CheckerPiece fromTile, CheckerPiece toTile)
 	{
 		Color temp = model.getColor(fromTile.getRow(), fromTile.getColumn());
@@ -409,9 +457,26 @@ public class GameView extends JFrame
 		{
 			model.exchangePrimedPlaces(fromTile, toTile);
 		}
-		System.out.println(model.primedPieces);
+		
 		model.endTurn();
 		updateGame();
 	}
+	
+	public void addToEvents(String event)
+	{
+		try
+		{
+			PrintWriter eventWriter = new PrintWriter(new FileWriter( eventFile, true ) );
+			
+			eventWriter.println(event);
 		
+			eventWriter.close();
+		}
+		
+		catch (Exception e)
+		{
+			System.out.println("no such file");
+		}
+		
+	}
 }
