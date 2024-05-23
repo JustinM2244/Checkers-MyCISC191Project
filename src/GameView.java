@@ -117,17 +117,26 @@ public class GameView extends JFrame
 		{
 			for(int col = 0; col < model.Dimension; col++)
 			{
+				//creates a checkerPiece JButton for each grid with the corresponding (row, col) coordinate
 				checkerPiece = new CheckerPiece(row, col);
 				checkerPiece.setBorder((BorderFactory.createLineBorder(Color.black)));
 				checkerPiece.setBackground(Color.gray);
 				checkerPiece.setEnabled(false);
+				
+				//adds the CheckerPieceListener to the checkerPiece
 				checkerPiece.addActionListener((new CheckerPieceListener(model, this, checkerPiece)));
 				board.add(checkerPiece);
 				
+				//if the tile is even
 				if((row + col) % 2 == 0)
 				{
+					//sets the piece as enabled and sets the background as white
 					checkerPiece.setEnabled(true);
 					checkerPiece.setBackground(Color.white);
+					
+					//if the row is before 3
+					//it sets the enabled checkerPiece as a black piece with a "Black" text
+					//and sets the black piece image as icon
 					if(row < 3)
 					{
 						blackPieceImg = new ImageIcon(this.getClass().getResource("BlackPiece.png"));
@@ -135,6 +144,10 @@ public class GameView extends JFrame
 						checkerPiece.setIcon(blackPieceImg);
 						checkerPiece.setText("Black");
 					}
+					
+					//if the row is after 4
+					//it sets the enabled checkerPiece as a red piece with a "Red" text
+					//and sets the red piece image as icon
 					if(row > 4)
 					{
 						redPieceImg = new ImageIcon(this.getClass().getResource("RedPiece.png"));
@@ -145,21 +158,28 @@ public class GameView extends JFrame
 				}
 			}
 		}
+		
+		//adds the board to the center of the JFrame
 		this.add(board, BorderLayout.CENTER);
 		
+		//creates a Scoreboard JPanel displaying the number of wins for each player
+		//and adds it to the top of the JFrame
 		JPanel Scoreboard = new JPanel();
 		Score = new JLabel("Black Player: " + model.getWins(Color.black) + " Red Player: "+ model.getWins(Color.red), JLabel.CENTER);
 		Score.setFont(new Font("Bold", 20, 20));
 		Scoreboard.add(Score);
 		this.add(Scoreboard, BorderLayout.NORTH);
 		
+		//creates a turnPanel display the current player's turn
+		//and adds it to the bottom of the JFrame
 		JPanel turnPanel = new JPanel();
 		playersTurn = new JLabel("Black Players's turn");
 		turnPanel.setFont(new Font("Bold", 20, 20));
 		turnPanel.add(playersTurn);
 		this.add(turnPanel, BorderLayout.SOUTH);
 		
-		
+		//creates a JPanel for the events that are 
+		//and adds it to the left of the JFrame
 		JPanel eventsListed = new JPanel();
 		eventsListed.setLayout(new GridLayout(3, 1));
 		JLabel eventsName = new JLabel("What is Happening???", JLabel.CENTER);
@@ -182,10 +202,15 @@ public class GameView extends JFrame
 		
 	}
 
-	
+	/**
+	 * updates the Game GUI
+	 */
 	public void updateGame()
-	{		
+	{	
+		//local variable initiated for reading the events happening
 		String eventsHappened = "";
+		
+		//displays either color players turn if its there turn
 		if(model.getPlayerTurn() == Color.black)
 		{
 			playersTurn.setText("Black Player's Turn");
@@ -195,6 +220,8 @@ public class GameView extends JFrame
 			playersTurn.setText("Red Player's Turn");
 		}
 		
+		//reads the eventFile and writes it to the content string
+		//which goes to the eventHappening string
 		try
 		{		
 			eventReader = new Scanner (eventFile);
@@ -220,10 +247,15 @@ public class GameView extends JFrame
 			}
 		}
 		
+		//updates the pieces remaining sliders
 		blackPiecesRemaining.setValue(model.piecesRemaining(Color.black));
 		redPiecesRemaining.setValue(model.piecesRemaining(Color.red));
+		
+		//updates the events with the events that happened
 		events.setText(eventsHappened);
 		
+		//updates the color of each playable tile to white
+		//while traversing the board
 		for(int row = 0; row < model.Dimension ; row++)
 		{
 			for(int col = 0; col < model.Dimension; col++)
@@ -234,9 +266,15 @@ public class GameView extends JFrame
 					int placement = (row * 8) + col;
 					CheckerPiece updatingTile = (CheckerPiece) board.getComponent(placement);;
 					board.getComponent(placement).setBackground(Color.white);
+					
+					//checks if the tile has a blackPiece
+					//and updates it if so
 					if(model.getColor(row, col) == Color.black)
 					{
 						updatingTile.setIcon(blackPieceImg);
+						
+						//if a black piece became primed
+						//its text is set as "Prime Black"
 						if(model.isPiecePrimed(updatingTile))
 						{
 							updatingTile.setText("Prime Black");
@@ -246,9 +284,15 @@ public class GameView extends JFrame
 							updatingTile.setText("Black");
 						}
 					}
+					
+					//checks if the tile has a redPiece
+					//and updates it if so
 					else if(model.getColor(row, col) == Color.red)
 					{
 						updatingTile.setIcon(redPieceImg);
+						
+						//if a red piece became primed
+						//its text is set as "Prime Red"
 						if(model.isPiecePrimed(updatingTile))
 						{
 							updatingTile.setText("Prime Red");
@@ -258,6 +302,10 @@ public class GameView extends JFrame
 							updatingTile.setText("Red");
 						}
 					}
+					
+					//if there is no color piece at the tile
+					//it is set to null along with the icon
+					//text is ""
 					else if(model.getColor(row, col) == null)
 					{
 						updatingTile.setText("");
@@ -267,7 +315,9 @@ public class GameView extends JFrame
 			}
 		}
 		
-		
+		//checks if black player wins
+		//if so, displays a message, updates the Score JLabel,
+		//resets the game and has the loser become the first to move next round
 		if(model.blackPlayerWins())
 		{
 			JOptionPane.showMessageDialog(null, "Black Player Wins");
@@ -276,9 +326,11 @@ public class GameView extends JFrame
 			model.endTurn();
 			model.resetGame();
 			updateGame();
-			storedPiece = null;
 		}
 		
+		//checks if red player wins
+		//if so, displays a message, updates the Score JLabel,
+		//resets the game and has the loser become the first to move next round
 		if(model.redPlayerWins())
 		{
 			JOptionPane.showMessageDialog(null, "Red Player Wins");

@@ -23,28 +23,36 @@ import java.util.ArrayList;
  */
 public class CheckerBoardModel 
 {
-	public static final int Dimension = 8; //CheckerBoard has-a dimension of 8x8;
-	private Color[][] grid = new Color[Dimension][Dimension];
-	private int redWins = 0;
-	private int blackWins = 0;
-	private int blackPieces = 12;
-	private int redPieces = 12;
-	protected ArrayList<CheckerPiece> primedPieces;
-	private Color playerTurn = Color.black;
+	public static final int Dimension = 8; 						//CheckerBoard has-a dimension of 8x8;
+	private Color[][] grid = new Color[Dimension][Dimension];  	//CheckerBoard has-a grid
+	private int redWins = 0;									//CheckerBoard has-a number of red wins		
+	private int blackWins = 0;									//CheckerBoard has-a number of black wins
+	private int blackPieces = 12;								//CheckerBoard has-a starting count of 12 black pieces
+	private int redPieces = 12;									//CheckerBoard has-a starting count of 12 red pieces
+	protected ArrayList<CheckerPiece> primedPieces;				//CheckerBoard has-an ArrayList containing the primed pieces
+	private Color playerTurn = Color.black;						//CheckerBoard has-the black player start first
 	
+	/**
+	 * Constructor with no parameters
+	 */
 	public CheckerBoardModel()
 	{
-		
+		//traverse through the grid
 		for(int row = 0; row < Dimension ; row++)
 		{
 			for(int col = 0; col < Dimension; col++)
 			{
 				if((row + col) % 2 == 0)
 				{
+					//if the row is less than 3
+					//the color is set to black
 					if(row < 3)
 					{
 						grid[row][col] = Color.black;
 					}
+					
+					//if the row is greater than 4
+					//the color is set to red
 					if(row > 4)
 					{
 						grid[row][col] = Color.red;
@@ -54,7 +62,11 @@ public class CheckerBoardModel
 		}
 	}
 	
-	
+	/**
+	 * checks if black player wins
+	 * @return true if black player wins/no red pieces left,
+	 * 			else false
+	 */
 	public boolean blackPlayerWins()
 	{
 		if(redPieces == 0)
@@ -65,6 +77,11 @@ public class CheckerBoardModel
 		return false;
 	}
 	
+	/**
+	 * checks if the red player wins
+	 * @return true if red player wins/no black pieces left,
+	 * 			else false
+	 */
 	public boolean redPlayerWins()
 	{
 		if(blackPieces == 0)
@@ -75,11 +92,22 @@ public class CheckerBoardModel
 		return false;
 	}
 	
+	/**
+	 * getter for the color at the specified grid
+	 * @param row
+	 * @param col
+	 * @return color of the gridpoint
+	 */
 	public Color getColor(int row, int col)
 	{
 		return grid[row][col];
 	}
 	
+	/**
+	 * getter of wins for the specified player color
+	 * @param playerColor
+	 * @return number of wins
+	 */
 	public int getWins(Color playerColor)
 	{
 		if(playerColor == Color.black)
@@ -93,28 +121,52 @@ public class CheckerBoardModel
 		return 0;
 	}
 	
+	/**
+	 * getter for the current player turn
+	 * @return playerTurn
+	 */
 	public Color getPlayerTurn()
 	{
 		return playerTurn;
 	}
 	
+	/**
+	 * setter for the color at the specified coordinate
+	 * @param row
+	 * @param col
+	 * @param color to be set
+	 */
 	public void setColor(int row, int col, Color color)
 	{
 		grid[row][col] = color;
 	}
 	
+	/**
+	 * primes the specified CheckerPiece
+	 * @param piece to be pieces
+	 */
 	public void piecePrimed(CheckerPiece piece)
 	{
+		//if the ArrayList is null
+		//creates a new one/initiates it
 		if(primedPieces == null) 
 		{
 			primedPieces = new ArrayList<>();
 		}
+		
+		//adds the pieces to the ArrayList
 		primedPieces.add(piece);
 	}
 
-	
+	/**
+	 * checks if the piece is primed
+	 * @param piece to check
+	 * @return true if the piece is in the primedPieces ArrayList,
+	 * 			else false
+	 */
 	public Boolean isPiecePrimed(CheckerPiece piece)
 	{
+		//return false if the ArrayList is null
 		if(primedPieces == null)
 		{
 			return false;
@@ -122,14 +174,29 @@ public class CheckerBoardModel
 		return primedPieces.contains(piece);
 	}
 	
+	/**
+	 * exchanged the places of a primed piece
+	 * @param fromTile the tile the primed piece is moving from
+	 * @param toTile the tile the primed piece is moving to
+	 */
 	public void exchangePrimedPlaces(CheckerPiece fromTile, CheckerPiece toTile)
 	{
 		primedPieces.remove(fromTile);
 		primedPieces.add(toTile);
 	}
 	
+	/**
+	 * eats/removes a piece
+	 * 	nulls a color at the specified location
+	 * @param row
+	 * @param column
+	 * @param colorEaten
+	 * @return string containing the color piece is eaten
+	 */
 	public String pieceEaten(int row, int column, Color colorEaten) 
 	{
+		//if the color eaten is black, it decreases the number of black pieces by 1
+		//and sets the tile as null
 		if(colorEaten == Color.black)
 		{
 			blackPieces--;
@@ -137,16 +204,23 @@ public class CheckerBoardModel
 			return "Black Piece Was Eaten";
 		}
 		
+		//if the color eaten is red, it decreases the number of red pieces by 1
+		//and sets the tile as null
 		if(colorEaten == Color.red)
 		{
 			redPieces--;
 			setColor(row,column, null);
 			return "Red Piece Was Eaten";
 		}
+		
 		return null;
 	}
 
-
+	/**
+	 * getter of pieces remaining for the specified color
+	 * @param playerColor
+	 * @return pieces remaining of the specified color
+	 */
 	public int piecesRemaining(Color playerColor)
 	{
 		if(playerColor == Color.black)
@@ -161,6 +235,10 @@ public class CheckerBoardModel
 		return 0;
 	}
 	
+	/**
+	 * ends the turn of the player
+	 * 	by setting the playerTurn as the opposite color
+	 */
 	public void endTurn()
 
 	{
@@ -174,8 +252,12 @@ public class CheckerBoardModel
 		}
 	}
 	
+	/**
+	 * resets the game
+	 */
 	public void resetGame()
 	{
+		//traverse the grid and sets the color of the grids
 		for(int row = 0; row < Dimension ; row++)
 		{
 			for(int col = 0; col < Dimension; col++)
@@ -195,8 +277,12 @@ public class CheckerBoardModel
 				}
 			}
 		}
+		
+		//resets the number of pieces
 		blackPieces = 12;
 		redPieces = 12;
+		
+		//clears the primedPieces ArrayList if not nulll
 		if(primedPieces != null)
 		{
 			primedPieces.clear();
