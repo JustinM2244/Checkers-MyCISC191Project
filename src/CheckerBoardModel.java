@@ -1,6 +1,26 @@
 import java.awt.Color;
 import java.util.ArrayList;
-
+/**
+ * Lead Author(s):
+ * @author Justin Martinez Garcia
+ * References:
+ * Morelli, R., & Walde, R. (2016). Java, Java, Java: Object-Oriented Problem Solving.
+ * Retrieved from https://open.umn.edu/opentextbooks/textbooks/java-java-java-object-oriented-problem-solving
+ * 
+ * https://www.tutorialspoint.com/design_pattern/mvc_pattern.htm
+ * 
+ * https://docs.oracle.com/javase/tutorial/uiswing/index.html
+ * 
+ * previous CISC191 coursework
+ * 
+ *  
+ * Version/date: 
+ * V2 5/22/24
+ * 
+ * Responsibilities of class:
+ * Class holds the information of the board
+ * 
+ */
 public class CheckerBoardModel 
 {
 	public static final int Dimension = 8; //CheckerBoard has-a dimension of 8x8;
